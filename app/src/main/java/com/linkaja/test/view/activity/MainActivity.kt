@@ -1,5 +1,7 @@
 package com.linkaja.test.view.activity
 
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -28,7 +30,6 @@ import org.jetbrains.anko.AnkoContext
 import org.jetbrains.anko.design.snackbar
 import org.jetbrains.anko.dip
 import org.jetbrains.anko.frameLayout
-import org.jetbrains.anko.horizontalPadding
 import org.jetbrains.anko.image
 import org.jetbrains.anko.imageView
 import org.jetbrains.anko.setContentView
@@ -38,18 +39,15 @@ import kotlin.coroutines.CoroutineContext
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainVM by viewModels()
-    private val mainAdapter by lazy {
-        MainAdater()
-    }
     private val ui: MainUI by lazy {
-        MainUI(mainAdapter)
+        MainUI()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui.setContentView(this)
         viewModel.resultLiveData.observe(this, resultObserver)
-        viewModel.getArticles("indonesia", 1)
+        viewModel.onCreate()
     }
 
     private val resultObserver = Observer<BaseResult<ArticleResponse>> { result ->
@@ -68,6 +66,14 @@ class MainActivity : AppCompatActivity() {
 
         val resultLiveData: MutableLiveData<BaseResult<ArticleResponse>> by lazy {
             MutableLiveData<BaseResult<ArticleResponse>>()
+        }
+
+        var isFirstLoad = true
+
+        fun onCreate() {
+            if (isFirstLoad)
+                getArticles("indonesia", 1)
+            isFirstLoad = false
         }
 
         fun getArticles(query: String, page: Long) = launch(Dispatchers.IO) {
@@ -108,21 +114,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    class MainUI(private val mainAdapter: MainAdater) : AnkoComponent<MainActivity> {
-
+    class MainUI : AnkoComponent<MainActivity> {
+        // view instance
         lateinit var recyclerView: RecyclerView
-        lateinit var imageView: ImageView
+        private lateinit var imageView: ImageView
+
+        private val mainAdapter: MainAdater by lazy {
+            MainAdater()
+        }
 
         override fun createView(ui: AnkoContext<MainActivity>) = with(ui) {
             frameLayout {
                 imageView = imageView {
                     image = ctx.getDrawable(R.drawable.ic_sun)
-                    horizontalPadding = dip(72)
+                    // padding = dip(72)
+                    width
                     visibility = View.VISIBLE
-                }
-                // .lparams(width = dip(28))
+                }.lparams(width = dip(110), height = dip(92))
                 recyclerView = recyclerView {
-                    layoutManager = GridLayoutManager(ctx, 1)
+                    layoutManager = GridLayoutManager(ctx, getSpanCount(ctx))
                     adapter = mainAdapter
                     visibility = View.GONE
                 }
@@ -131,13 +141,15 @@ class MainActivity : AppCompatActivity() {
             recyclerView
         }
 
+        private fun getSpanCount(ctx: Context) = when (ctx.resources.configuration.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> 4
+            else -> 1
+        }
+
         fun addArticles(newArticles: List<Article>) {
             mainAdapter.addArticles(newArticles)
             imageView.visibility = View.GONE
             recyclerView.visibility = View.VISIBLE
-        }
-
-        fun swapOrientation() {
         }
     }
 }
