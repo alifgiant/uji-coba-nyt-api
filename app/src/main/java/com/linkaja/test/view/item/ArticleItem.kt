@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.linkaja.test.model.Article
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
+import org.jetbrains.anko.find
 import org.jetbrains.anko.verticalLayout
 
 class ArticleItem {
@@ -37,6 +38,7 @@ class ArticleItem {
     class ViewHolder(item: View) : RecyclerView.ViewHolder(item) {
         var ivImage: ImageView = itemView.findViewById(ArticleUI.ID_IMAGE)
         fun bind(article: Article) {
+            itemView.find<ImageView>(ArticleUI.ID_IMAGE)
         }
     }
 
