@@ -3,9 +3,9 @@ package com.linkaja.test.view.activity
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
@@ -34,28 +34,38 @@ import org.jetbrains.anko.image
 import org.jetbrains.anko.imageView
 import org.jetbrains.anko.setContentView
 import org.jetbrains.anko.textView
+import org.jetbrains.anko.verticalLayout
+import org.jetbrains.anko.verticalPadding
 import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainVM by viewModels()
     private val ui: MainUI by lazy {
-        MainUI()
+        MainUI(
+            onSearch = { query ->
+
+            },
+            onScroll = {
+                viewModel.getNextArticles()
+            }
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui.setContentView(this)
+
+        val resultObserver = Observer<BaseResult<ArticleResponse>> { result ->
+            if (result.status == "OK") {
+                ui.addArticles(result.response.docs)
+            } else {
+                ui.recyclerView.snackbar("Gagal mengambil data")
+            }
+        }
+
         viewModel.resultLiveData.observe(this, resultObserver)
         viewModel.onCreate()
-    }
-
-    private val resultObserver = Observer<BaseResult<ArticleResponse>> { result ->
-        if (result.status == "OK") {
-            ui.addArticles(result.response.docs)
-        } else {
-            ui.recyclerView.snackbar("Gagal mengambil data")
-        }
     }
 
     class MainVM : ViewModel(), CoroutineScope {
@@ -68,19 +78,29 @@ class MainActivity : AppCompatActivity() {
             MutableLiveData<BaseResult<ArticleResponse>>()
         }
 
-        var isFirstLoad = true
+        private var isFirstLoad = true
+        private var page: Long = 1
+        private var query: String = DEFAULT_QUERY
 
         fun onCreate() {
-            if (isFirstLoad)
-                getArticles("indonesia", 1)
+            if (isFirstLoad) getNextArticles()
             isFirstLoad = false
         }
 
-        fun getArticles(query: String, page: Long) = launch(Dispatchers.IO) {
+        fun getNextArticles() = launch(Dispatchers.IO) {
             val articles = ArticleRepository.getArticles(query, page)
             withContext(Dispatchers.Main) {
                 resultLiveData.value = articles
             }
+        }
+
+        fun onSearch(newQuery: String) {
+            query = if (newQuery.isNotEmpty()) newQuery else DEFAULT_QUERY
+            page = 1
+        }
+
+        companion object {
+            const val DEFAULT_QUERY = "indonesia"
         }
     }
 
@@ -114,10 +134,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    class MainUI : AnkoComponent<MainActivity> {
+    class MainUI(
+        private val onSearch: (String) -> Unit,
+        private val onScroll: () -> Unit
+    ) : AnkoComponent<MainActivity> {
         // view instance
         lateinit var recyclerView: RecyclerView
-        private lateinit var imageView: ImageView
+        private lateinit var emptyView: View
 
         private val mainAdapter: MainAdater by lazy {
             MainAdater()
@@ -125,12 +148,18 @@ class MainActivity : AppCompatActivity() {
 
         override fun createView(ui: AnkoContext<MainActivity>) = with(ui) {
             frameLayout {
-                imageView = imageView {
-                    image = ctx.getDrawable(R.drawable.ic_sun)
-                    // padding = dip(72)
-                    width
+                emptyView = verticalLayout {
                     visibility = View.VISIBLE
-                }.lparams(width = dip(110), height = dip(92))
+                    imageView {
+                        image = ctx.getDrawable(R.drawable.ic_sun)
+                        width
+                    }.lparams(width = dip(210), height = dip(120))
+                    textView {
+                        text = ctx.getString(R.string.caption_empty)
+                        gravity = Gravity.CENTER
+                        verticalPadding = dip(26)
+                    }
+                }.lparams(gravity = Gravity.CENTER)
                 recyclerView = recyclerView {
                     layoutManager = GridLayoutManager(ctx, getSpanCount(ctx))
                     adapter = mainAdapter
@@ -148,7 +177,7 @@ class MainActivity : AppCompatActivity() {
 
         fun addArticles(newArticles: List<Article>) {
             mainAdapter.addArticles(newArticles)
-            imageView.visibility = View.GONE
+            emptyView.visibility = View.GONE
             recyclerView.visibility = View.VISIBLE
         }
     }

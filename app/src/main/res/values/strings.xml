@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Tes LinkAja</string>
+    <string name="caption_empty">Belum Ada Berita</string>
 </resources>
