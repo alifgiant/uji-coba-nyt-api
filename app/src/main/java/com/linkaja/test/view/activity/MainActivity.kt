@@ -13,16 +13,19 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.linkaja.test.R
 import com.linkaja.test.model.Article
+import com.linkaja.test.model.ArticleResponse
+import com.linkaja.test.model.BaseResult
+import com.linkaja.test.repository.ArticleRepository
 import com.linkaja.test.view.recyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
+import org.jetbrains.anko.design.snackbar
 import org.jetbrains.anko.dip
 import org.jetbrains.anko.frameLayout
 import org.jetbrains.anko.horizontalPadding
@@ -45,40 +48,32 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui.setContentView(this)
-        viewModel.articleLiveData.observe(this, articleObserver)
+        viewModel.resultLiveData.observe(this, resultObserver)
         viewModel.getArticles("indonesia", 1)
     }
 
-    private val articleObserver = Observer<List<Article>> { Articles ->
-        ui.addArticles(Articles)
+    private val resultObserver = Observer<BaseResult<ArticleResponse>> { result ->
+        if (result.status == "OK") {
+            ui.addArticles(result.response.docs)
+        } else {
+            ui.recyclerView.snackbar("Gagal mengambil data")
+        }
     }
 
     class MainVM : ViewModel(), CoroutineScope {
-
         private var job: Job = SupervisorJob()
 
         override val coroutineContext: CoroutineContext
             get() = job + Dispatchers.Default
 
-        val articleLiveData: MutableLiveData<List<Article>> by lazy {
-            MutableLiveData<List<Article>>()
+        val resultLiveData: MutableLiveData<BaseResult<ArticleResponse>> by lazy {
+            MutableLiveData<BaseResult<ArticleResponse>>()
         }
 
-        fun getArticles(query: String, page: Long) = launch {
-            delay(3000)
-
+        fun getArticles(query: String, page: Long) = launch(Dispatchers.IO) {
+            val articles = ArticleRepository.getArticles(query, page)
             withContext(Dispatchers.Main) {
-                articleLiveData.value = listOf(
-                    Article(),
-                    Article(),
-                    Article(),
-                    Article(),
-                    Article(),
-                    Article(),
-                    Article(),
-                    Article(),
-                    Article()
-                )
+                resultLiveData.value = articles
             }
         }
     }
@@ -125,7 +120,7 @@ class MainActivity : AppCompatActivity() {
                     horizontalPadding = dip(72)
                     visibility = View.VISIBLE
                 }
-                    // .lparams(width = dip(28))
+                // .lparams(width = dip(28))
                 recyclerView = recyclerView {
                     layoutManager = GridLayoutManager(ctx, 1)
                     adapter = mainAdapter
