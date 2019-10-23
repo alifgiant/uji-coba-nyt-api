@@ -1,17 +1,62 @@
 package com.linkaja.exam.repository
 
+import android.content.SharedPreferences
+import com.linkaja.exam.ext.readArticleString
+import com.linkaja.exam.model.Article
 import com.linkaja.exam.model.ArticleResponse
 import com.linkaja.exam.model.BaseResult
+import com.linkaja.exam.model.articlesType
 import com.linkaja.exam.service.Api
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.http.GET
 import retrofit2.http.Query
 
 object ArticleRepository {
+    private const val DEFAULT_QUERY = "indonesia"
+    private const val PAGE_START = -1L
 
-    suspend fun getArticles(query: String, page: Long) = Api
-        .retrofit
-        .create(Service::class.java)
-        .getArticles(query, page)
+    private var page = PAGE_START
+    val articles: MutableList<Article> = mutableListOf()
+
+    suspend fun requestNextArticles(query: String): List<Article>? {
+        try {
+            val result = Api
+                .retrofit
+                .create(Service::class.java)
+                .getArticles(if (query.isNotEmpty()) query else DEFAULT_QUERY, page + 1)
+
+            return if (result.response?.docs != null && result.response.docs.isNotEmpty()) {
+                page += 1
+                if (page == 0L) articles.clear()
+                withContext(Dispatchers.Main) {
+                    articles.addAll(result.response.docs)
+                }
+                result.response.docs
+            } else {
+                listOf()
+            }
+        } catch (e: Exception) {
+            page = PAGE_START
+            return null
+        }
+    }
+
+    fun loadCachedArticles(pref: SharedPreferences): List<Article>? {
+        val rawSavedResult = pref.readArticleString()
+        return if (rawSavedResult != null) {
+            val savedResult: List<Article> = Api.gson.fromJson(rawSavedResult, articlesType)
+            articles.addAll(savedResult)
+            savedResult
+        } else {
+            null
+        }
+    }
+
+    fun reset() {
+        page = PAGE_START
+        articles.clear()
+    }
 
     interface Service {
         @GET("articlesearch.json")

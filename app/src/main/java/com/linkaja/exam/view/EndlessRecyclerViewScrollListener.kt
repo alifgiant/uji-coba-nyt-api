@@ -4,6 +4,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 abstract class EndlessRecyclerViewScrollListener(private val mLayoutManager: RecyclerView.LayoutManager) :
     RecyclerView.OnScrollListener() {
@@ -18,7 +24,7 @@ abstract class EndlessRecyclerViewScrollListener(private val mLayoutManager: Rec
     private var loading = true
     // Sets the starting page index
     private val startingPageIndex = 0
-    // internal var mLayoutManager: RecyclerView.LayoutManager
+    private var delayJob: Job? = null
 
     init {
         when (mLayoutManager) {
@@ -66,6 +72,7 @@ abstract class EndlessRecyclerViewScrollListener(private val mLayoutManager: Rec
         // number and total item count.
         if (loading && totalItemCount > previousTotalItemCount) {
             loading = false
+            delayJob?.cancel()
             previousTotalItemCount = totalItemCount
         }
         // If it isn’t currently loading, we check to see if we have breached
@@ -75,7 +82,18 @@ abstract class EndlessRecyclerViewScrollListener(private val mLayoutManager: Rec
         if (!loading && lastVisibleItemPosition + visibleThreshold > totalItemCount) {
             currentPage++
             onLoadMore(currentPage, totalItemCount, view)
+            startCountDown()
             loading = true
+        }
+    }
+
+    // start countdown, so wil never infinite loading
+    private fun startCountDown() {
+        delayJob = GlobalScope.launch {
+            delay(5000)
+            withContext(Dispatchers.Main) {
+                loading = false
+            }
         }
     }
 

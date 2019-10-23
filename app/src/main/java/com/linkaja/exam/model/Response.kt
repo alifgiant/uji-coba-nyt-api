@@ -1,8 +1,11 @@
 package com.linkaja.exam.model
 
 import com.google.gson.annotations.SerializedName
+import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+val articlesType = object : TypeToken<List<Article>>() {}.type!!
 
 data class BaseResult<T>(
     @SerializedName("status") val status: String? = null,

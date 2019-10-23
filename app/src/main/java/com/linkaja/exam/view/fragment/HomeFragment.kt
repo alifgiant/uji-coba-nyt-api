@@ -1,6 +1,7 @@
 package com.linkaja.exam.view.fragment
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
@@ -17,12 +18,13 @@ import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.linkaja.exam.R
+import com.linkaja.exam.ext.getPreference
+import com.linkaja.exam.ext.recyclerView
+import com.linkaja.exam.ext.saveArticleString
 import com.linkaja.exam.model.Article
-import com.linkaja.exam.model.ArticleResponse
-import com.linkaja.exam.model.BaseResult
 import com.linkaja.exam.repository.ArticleRepository
+import com.linkaja.exam.service.Api
 import com.linkaja.exam.view.EndlessRecyclerViewScrollListener
-import com.linkaja.exam.view.ext.recyclerView
 import com.linkaja.exam.view.item.ArticleItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -71,17 +73,25 @@ class HomeFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val resultObserver = Observer<BaseResult<ArticleResponse>> { result ->
-            if (result.response?.docs != null) {
-                ui.addArticles(result.response.docs)
-                if (result.response.docs.isEmpty()) ui.showSnackBar("Data sudah habis")
-            } else {
-                ui.showSnackBar("Gagal mengambil data")
+        val resultObserver = Observer<List<Article>?> { result ->
+            when {
+                result == null -> ui.showSnackBar("Gagal mengambil data")
+                result.isEmpty() -> ui.showSnackBar("Data sudah habis")
+                else -> {
+                    ui.updateArticle(result)
+                    saveData(result)
+                }
             }
         }
 
-        viewModel.resultLiveData.observe(this, resultObserver)
+        viewModel.resultLD.observe(this, resultObserver)
         viewModel.onCreate()
+        viewModel.loadFromPref(context?.getPreference())
+    }
+
+    private fun saveData(articlesResult: List<Article>) {
+        val dataRaw = Api.gson.toJson(articlesResult)
+        context?.getPreference()?.saveArticleString(dataRaw)
     }
 
     class HomeViewModel : ViewModel(), CoroutineScope {
@@ -90,41 +100,41 @@ class HomeFragment : Fragment() {
         override val coroutineContext: CoroutineContext
             get() = job + Dispatchers.Default
 
-        val resultLiveData: MutableLiveData<BaseResult<ArticleResponse>> by lazy {
-            MutableLiveData<BaseResult<ArticleResponse>>()
+        val resultLD: MutableLiveData<List<Article>?> by lazy {
+            MutableLiveData<List<Article>?>()
         }
 
-        private var isFirstLoad = true
-        private var page: Long = PAGE_START
-        private var query: String = DEFAULT_QUERY
+        var isFirstLoad = true
 
         fun onCreate() {
-            // if (isFirstLoad)
-            getNextArticles()
+            if (isFirstLoad) {
+                getNextArticles()
+            }
         }
 
-        fun getNextArticles() = launch(Dispatchers.IO) {
-            page += 1
-            val articles = ArticleRepository.getArticles(query, page)
-            withContext(Dispatchers.Main) {
-                if (articles.response?.docs != null && articles.response.docs.isNotEmpty())
-                    isFirstLoad = false
+        fun loadFromPref(pref: SharedPreferences?) = launch {
+            pref?.let {
+                val article = ArticleRepository.loadCachedArticles(it)
+                withContext(Dispatchers.Main) {
+                    resultLD.value = article
+                }
+            }
+        }
 
-                resultLiveData.value = articles
+        fun getNextArticles(query: String = "") = launch {
+            val articles = ArticleRepository.requestNextArticles(query)
+            withContext(Dispatchers.Main) {
+                if (articles != null && articles.isNotEmpty()) {
+                    isFirstLoad = false
+                }
+                resultLD.value = articles
             }
         }
 
         fun onSearch(newQuery: String) {
-            query = if (newQuery.isNotEmpty()) newQuery else DEFAULT_QUERY
-            page = PAGE_START
 
             // load data
             getNextArticles()
-        }
-
-        companion object {
-            const val DEFAULT_QUERY = "indonesia"
-            const val PAGE_START = -1L
         }
     }
 
@@ -135,6 +145,7 @@ class HomeFragment : Fragment() {
         private lateinit var recyclerView: RecyclerView
         private lateinit var emptyView: View
         private lateinit var textView: TextView
+        private var isFirstLoad: Boolean = true
 
         private val mainAdapter: ArticleItem.Adapter by lazy {
             ArticleItem.Adapter()
@@ -189,10 +200,9 @@ class HomeFragment : Fragment() {
             else -> 1
         }
 
-        fun addArticles(newArticles: List<Article>) {
-            mainAdapter.addArticles(newArticles)
-
+        fun updateArticle(newArticles: List<Article>) {
             if (newArticles.isNotEmpty()) {
+                mainAdapter.notifyItemInserted(mainAdapter.itemCount - newArticles.size)
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
             } else {

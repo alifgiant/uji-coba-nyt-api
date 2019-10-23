@@ -12,9 +12,10 @@ import androidx.annotation.IdRes
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.linkaja.exam.R
+import com.linkaja.exam.ext.cardView
 import com.linkaja.exam.model.Article
+import com.linkaja.exam.repository.ArticleRepository
 import com.linkaja.exam.view.activity.NewsActivity
-import com.linkaja.exam.view.ext.cardView
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
 import org.jetbrains.anko.configuration
@@ -32,21 +33,14 @@ import java.util.Date
 
 class ArticleItem {
     class Adapter : RecyclerView.Adapter<ViewHolder>() {
-        private val articles = mutableListOf<Article>()
-
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             return ViewHolder(ArticleUI().createView(AnkoContext.create(parent.context, parent)))
         }
 
-        override fun getItemCount(): Int = articles.size
+        override fun getItemCount(): Int = ArticleRepository.articles.size
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(articles[position])
-        }
-
-        fun addArticles(newArticles: List<Article>) {
-            articles.addAll(newArticles)
-            notifyItemInserted(articles.size - newArticles.size)
+            holder.bind(ArticleRepository.articles[position])
         }
     }
 
@@ -85,7 +79,6 @@ class ArticleItem {
         }
 
         override fun createView(ui: AnkoContext<ViewGroup>) = with(ui) {
-            // frameLayout {
             cardView {
                 useCompatPadding = true
                 verticalLayout {
