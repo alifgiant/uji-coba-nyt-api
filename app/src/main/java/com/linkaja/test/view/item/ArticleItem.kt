@@ -1,33 +1,41 @@
 package com.linkaja.test.view.item
 
+import android.content.Context
+import android.content.res.Configuration
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.linkaja.test.R
 import com.linkaja.test.model.Article
+import com.linkaja.test.view.cardView
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
+import org.jetbrains.anko.configuration
+import org.jetbrains.anko.dip
 import org.jetbrains.anko.find
+import org.jetbrains.anko.image
+import org.jetbrains.anko.imageView
+import org.jetbrains.anko.padding
+import org.jetbrains.anko.textView
 import org.jetbrains.anko.verticalLayout
 
 class ArticleItem {
     class Adapter : RecyclerView.Adapter<ViewHolder>() {
-        private val articles by lazy { mutableListOf<Article>() }
+        private val articles = mutableListOf<Article>()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            return ViewHolder(
-                ArticleUI().createView(
-                    AnkoContext.Companion.create(
-                        parent.context, parent
-                    )
-                )
-            )
+            return ViewHolder(ArticleUI().createView(AnkoContext.create(parent.context, parent)))
         }
 
         override fun getItemCount(): Int = articles.size
 
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) =
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             holder.bind(articles[position])
+        }
 
         fun addArticles(newArticles: List<Article>) {
             articles.addAll(newArticles)
@@ -36,22 +44,96 @@ class ArticleItem {
     }
 
     class ViewHolder(item: View) : RecyclerView.ViewHolder(item) {
-        var ivImage: ImageView = itemView.findViewById(ArticleUI.ID_IMAGE)
+        private fun getFormattedDate(rawDate: String): String {
+            val date = Article.RAW_DATE_FORMAT.parse(rawDate)
+            return Article.SIMPLE_DATE_FORMAT.format(date)
+        }
+
         fun bind(article: Article) {
-            itemView.find<ImageView>(ArticleUI.ID_IMAGE)
+            if (article.multimedias.isNotEmpty()) {
+                val imageView = itemView.find<ImageView>(ID_IMAGE)
+                Glide.with(itemView)
+                    .load("https://static01.nyt.com/${article.multimedias.first().url}")
+                    .into(imageView)
+            }
+            itemView.find<TextView>(ID_TITLE).text = article.headline.printHeadline
+                ?: article.headline.main
+            itemView.find<TextView>(ID_BYLINE).text = article.byLine.original
+            itemView.find<TextView>(ID_DATE).text = getFormattedDate(article.pubDate)
+            itemView.find<TextView>(ID_SNIPPET).text = article.snippet
         }
     }
 
     class ArticleUI : AnkoComponent<ViewGroup> {
 
-        override fun createView(ui: AnkoContext<ViewGroup>) = with(ui) {
-            verticalLayout {
-
+        private fun getImageHeight(ctx: Context): Int {
+            return when (ctx.configuration.orientation) {
+                Configuration.ORIENTATION_LANDSCAPE -> ctx.dip(110)
+                else -> ctx.dip(260)
             }
         }
 
-        companion object {
-            const val ID_IMAGE = 1
+        override fun createView(ui: AnkoContext<ViewGroup>) = with(ui) {
+            // frameLayout {
+            cardView {
+                useCompatPadding = true
+                verticalLayout {
+                    padding = dip(8)
+                    gravity = Gravity.CENTER
+                    val imageView = imageView {
+                        image = ctx.getDrawable(R.drawable.ic_under_construction)
+                        id = ID_IMAGE
+                        scaleType = ImageView.ScaleType.CENTER_CROP
+
+                    }.lparams(
+                        width = ViewGroup.LayoutParams.MATCH_PARENT,
+                        height = getImageHeight(ctx)
+                    )
+                    val title = textView {
+                        text = "Title"
+                        id = ID_TITLE
+                        textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
+                    }
+                    val byline = textView {
+                        text = "BYLINE"
+                        id = ID_BYLINE
+                        textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
+                    }
+                    val date = textView {
+                        text = "DATE"
+                        id = ID_DATE
+                        textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
+                    }
+                    val snippet = textView {
+                        text = "Snippet"
+                        id = ID_SNIPPET
+                        textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
+                    }
+
+                    // applyConstraintSet {
+                    //     byline {
+                    //         connect(Side.TOP to Side.BOTTOM of title margin dip(8))
+                    //     }
+                    //     snippet {
+                    //         connect(Side.TOP to Side.BOTTOM of byline margin dip(16))
+                    //     }
+                    // }
+                }
+            }
+            // .apply {
+            // updateLayoutParams {
+            //     marginTop
+            // }
+            // }
         }
     }
+
+    companion object {
+        const val ID_TITLE = 1
+        const val ID_BYLINE = 2
+        const val ID_DATE = 3
+        const val ID_SNIPPET = 4
+        const val ID_IMAGE = 5
+    }
 }
+

@@ -1,6 +1,8 @@
 package com.linkaja.test.model
 
 import com.google.gson.annotations.SerializedName
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 data class BaseResult<T>(
     @SerializedName("status") val status: String,
@@ -23,7 +25,7 @@ data class Article(
     @SerializedName("_id") val id: String,
     @SerializedName("byline") val byLine: ByLine,
     @SerializedName("document_type") val docType: String,
-    @SerializedName("headline") val headlines: HeadLine,
+    @SerializedName("headline") val headline: HeadLine,
     @SerializedName("keywords") val keywords: List<Keyword>,
     @SerializedName("multimedia") val multimedias: List<Multimedia>,
     @SerializedName("news_desk") val newsDeck: String,
@@ -40,7 +42,12 @@ data class Article(
     @SerializedName("abstract") val abstract: String,
     @SerializedName("section_name") val sectionName: String,
     @SerializedName("subsection_name") val subSectionName: String
-)
+) {
+    companion object {
+        val RAW_DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
+        val SIMPLE_DATE_FORMAT = SimpleDateFormat("MMM. dd, yyyy", Locale.US)
+    }
+}
 
 data class ByLine(
     @SerializedName("organization") val organization: String? = null,
@@ -64,7 +71,7 @@ data class HeadLine(
     @SerializedName("kicker") val kicker: String? = null,
     @SerializedName("main") val main: String,
     @SerializedName("name") val name: String? = null,
-    @SerializedName("print_headline") val printHeadline: String,
+    @SerializedName("print_headline") val printHeadline: String? = null,
     @SerializedName("seo") val seo: String? = null,
     @SerializedName("sub") val sub: String? = null
 )
