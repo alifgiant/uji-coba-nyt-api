@@ -21,6 +21,7 @@ import com.linkaja.exam.ext.getPreference
 import com.linkaja.exam.model.Article
 import com.linkaja.exam.repository.ArticleRepository
 import com.linkaja.exam.view.activity.NewsActivity
+import com.linkaja.exam.view.activity.NewsActivity.Companion.KEY_POSITION
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
 import org.jetbrains.anko.backgroundColor
@@ -74,7 +75,7 @@ class ArticleItem {
 
         fun bind(position: Int) = with(itemView) {
             if (!isFullScreen) onClick {
-                context.startActivity<NewsActivity>("position" to position)
+                context.startActivity<NewsActivity>(KEY_POSITION to position)
             }
 
             if (position < ArticleRepository.articles.size) {

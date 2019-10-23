@@ -25,6 +25,7 @@ import com.linkaja.exam.model.Article
 import com.linkaja.exam.repository.ArticleRepository
 import com.linkaja.exam.service.Api
 import com.linkaja.exam.view.EndlessRecyclerViewScrollListener
+import com.linkaja.exam.view.activity.SearchActivity
 import com.linkaja.exam.view.item.ArticleItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +45,7 @@ import org.jetbrains.anko.horizontalPadding
 import org.jetbrains.anko.image
 import org.jetbrains.anko.imageView
 import org.jetbrains.anko.sdk25.coroutines.onClick
+import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.support.v4.ctx
 import org.jetbrains.anko.textColor
 import org.jetbrains.anko.textView
@@ -57,14 +59,12 @@ class HomeFragment : Fragment() {
         fun newInstance() = HomeFragment()
     }
 
-    private val ui: HomeUI by lazy {
-        HomeUI(
-            onSearch = { viewModel.onSearch(it) },
-            onScroll = { viewModel.getNextArticles() }
-        )
-    }
-
     private val viewModel: HomeViewModel by viewModels()
+    private val ui: HomeUI by lazy {
+        HomeUI {
+            viewModel.getNextArticles()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -130,18 +130,9 @@ class HomeFragment : Fragment() {
                 resultLD.value = articles
             }
         }
-
-        fun onSearch(newQuery: String) {
-
-            // load data
-            getNextArticles()
-        }
     }
 
-    class HomeUI(
-        private val onSearch: (String) -> Unit,
-        private val onScroll: () -> Unit
-    ) : AnkoComponent<HomeFragment> {
+    class HomeUI(private val onScroll: () -> Unit) : AnkoComponent<HomeFragment> {
         private lateinit var recyclerView: RecyclerView
         private lateinit var emptyView: View
         private lateinit var textView: TextView
@@ -185,7 +176,9 @@ class HomeFragment : Fragment() {
                 floatingActionButton {
                     useCompatPadding = true
                     image = ctx.getDrawable(R.drawable.ic_search)
-                    onClick { }
+                    onClick {
+                        startActivity<SearchActivity>()
+                    }
                 }.lparams(
                     width = ViewGroup.LayoutParams.WRAP_CONTENT,
                     gravity = Gravity.BOTTOM + Gravity.END

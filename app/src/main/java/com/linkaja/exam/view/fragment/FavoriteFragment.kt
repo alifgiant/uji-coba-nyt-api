@@ -39,22 +39,11 @@ class FavoriteFragment : Fragment() {
         fun newInstance() = FavoriteFragment()
     }
 
-    private lateinit var viewModel: FavoriteViewModel
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = FavoriteUI().createView(AnkoContext.Companion.create(ctx, this))
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(FavoriteViewModel::class.java)
-        // TODO: Use the ViewModel
-    }
-
-    class FavoriteViewModel : ViewModel() {
-        // TODO: Implement the ViewModel
-    }
 
     class FavoriteUI : AnkoComponent<FavoriteFragment> {
         private lateinit var recyclerView: RecyclerView

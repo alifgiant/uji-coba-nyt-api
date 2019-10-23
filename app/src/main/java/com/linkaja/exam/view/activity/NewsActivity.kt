@@ -46,6 +46,8 @@ class NewsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui.setContentView(this)
+
+
         val resultObserver = Observer<List<Article>?> { result ->
             when {
                 result == null -> ui.showSnackBar("Gagal mengambil data")
@@ -56,8 +58,9 @@ class NewsActivity : AppCompatActivity() {
                 }
             }
         }
-
         viewModel.resultLD.observe(this, resultObserver)
+
+        ui.recyclerView.scrollToPosition(intent.getIntExtra(KEY_POSITION, 0))
     }
 
     private fun saveData(articlesResult: List<Article>) {
@@ -84,7 +87,7 @@ class NewsActivity : AppCompatActivity() {
     }
 
     class NewsUI(private val onScroll: () -> Unit) : AnkoComponent<NewsActivity> {
-        private lateinit var recyclerView: RecyclerView
+        lateinit var recyclerView: RecyclerView
 
         private val mainAdapter: ArticleItem.Adapter by lazy {
             ArticleItem.Adapter(isFullScreen = true)
@@ -120,5 +123,9 @@ class NewsActivity : AppCompatActivity() {
         fun showSnackBar(msg: String) {
             recyclerView.snackbar(msg)
         }
+    }
+
+    companion object {
+        const val KEY_POSITION = "position"
     }
 }
