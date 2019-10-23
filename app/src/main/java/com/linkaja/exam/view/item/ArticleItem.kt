@@ -2,6 +2,7 @@ package com.linkaja.exam.view.item
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.linkaja.exam.R
 import com.linkaja.exam.model.Article
+import com.linkaja.exam.view.activity.NewsActivity
 import com.linkaja.exam.view.ext.cardView
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
@@ -21,6 +23,9 @@ import org.jetbrains.anko.find
 import org.jetbrains.anko.image
 import org.jetbrains.anko.imageView
 import org.jetbrains.anko.padding
+import org.jetbrains.anko.sdk25.coroutines.onClick
+import org.jetbrains.anko.space
+import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.textView
 import org.jetbrains.anko.verticalLayout
 import java.util.Date
@@ -52,12 +57,14 @@ class ArticleItem {
         }
 
         fun bind(article: Article) {
+            val imageView = itemView.find<ImageView>(ID_IMAGE)
             if (article.multimedias != null && article.multimedias.isNotEmpty()) {
-                val imageView = itemView.find<ImageView>(ID_IMAGE)
                 Glide.with(itemView)
                     .load("https://static01.nyt.com/${article.multimedias.first().url}")
                     .placeholder(R.drawable.ic_under_construction)
                     .into(imageView)
+            } else {
+                imageView.image = itemView.context.getDrawable(R.drawable.ic_under_construction)
             }
             itemView.find<TextView>(ID_TITLE).text = article.headline?.printHeadline
                 ?: article.headline?.main
@@ -84,7 +91,7 @@ class ArticleItem {
                 verticalLayout {
                     padding = dip(8)
                     gravity = Gravity.CENTER
-                    val imageView = imageView {
+                    imageView {
                         image = ctx.getDrawable(R.drawable.ic_under_construction)
                         id = ID_IMAGE
                         scaleType = ImageView.ScaleType.CENTER_CROP
@@ -93,23 +100,31 @@ class ArticleItem {
                         width = ViewGroup.LayoutParams.MATCH_PARENT,
                         height = getImageHeight(ctx)
                     )
-                    val title = textView {
+                    space().lparams(height = dip(12))
+                    textView {
                         id = ID_TITLE
-                        // textSize = sp(16)
+                        typeface = Typeface.DEFAULT_BOLD
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
-                    val byline = textView {
+                    textView {
                         id = ID_BYLINE
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
-                    val date = textView {
+                    textView {
                         id = ID_DATE
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
-                    val snippet = textView {
+                    space().lparams(height = dip(16))
+                    textView {
                         id = ID_SNIPPET
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
+                }
+                onClick {
+                    startActivity<NewsActivity>(
+                        "id" to 5,
+                        "city" to "Denpasar"
+                    )
                 }
             }
         }

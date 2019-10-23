@@ -105,6 +105,7 @@ class HomeFragment : Fragment() {
             withContext(Dispatchers.Main) {
                 if (articles.response?.docs != null && articles.response.docs.isNotEmpty())
                     isFirstLoad = false
+
                 resultLiveData.value = articles
             }
         }
@@ -146,7 +147,6 @@ class HomeFragment : Fragment() {
                     }
                 }.lparams(gravity = Gravity.CENTER)
                 recyclerView = recyclerView {
-
                     layoutManager = StaggeredGridLayoutManager(
                         getSpanCount(ctx),
                         StaggeredGridLayoutManager.VERTICAL

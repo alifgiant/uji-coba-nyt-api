@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import com.linkaja.exam.R
+import com.linkaja.exam.view.fragment.FavoriteFragment
 import com.linkaja.exam.view.fragment.HomeFragment
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     private val fragments = listOf(
         HomeFragment.newInstance(),
-        HomeFragment.newInstance()
+        FavoriteFragment.newInstance()
     )
 
     private val ui: MainUI by lazy {
@@ -56,7 +57,13 @@ class MainActivity : AppCompatActivity() {
                     inflateMenu(R.menu.menu_home)
                     elevation = px2dip(4)
                     setOnNavigationItemSelectedListener { item ->
-                        switchTab(item.order)
+
+                        switchTab(
+                            when (item.itemId) {
+                                R.id.menu_home -> 0
+                                else -> 1
+                            }
+                        )
                         true
                     }
                 }.lparams(
