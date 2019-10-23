@@ -11,3 +11,9 @@ fun SharedPreferences.saveArticleString(raw: String) = edit {
 }
 
 fun SharedPreferences.readArticleString() = getString("articles", null)
+
+fun SharedPreferences.saveFavoriteArticleString(raw: String) = edit {
+    putString("favorite", raw)
+}
+
+fun SharedPreferences.readFavoriteArticleString() = getString("favorite", null)

@@ -25,7 +25,7 @@ data class Meta(
 )
 
 data class Article(
-    @SerializedName("_id") val id: String? = null,
+    @SerializedName("_id") val id: String,
     @SerializedName("byline") val byLine: ByLine? = null,
     @SerializedName("document_type") val docType: String? = null,
     @SerializedName("headline") val headline: HeadLine? = null,

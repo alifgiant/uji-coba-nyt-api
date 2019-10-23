@@ -14,8 +14,10 @@ import androidx.annotation.IdRes
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.linkaja.exam.R
 import com.linkaja.exam.ext.cardView
+import com.linkaja.exam.ext.getPreference
 import com.linkaja.exam.model.Article
 import com.linkaja.exam.repository.ArticleRepository
 import com.linkaja.exam.view.activity.NewsActivity
@@ -39,17 +41,30 @@ import org.jetbrains.anko.windowManager
 import java.util.Date
 
 class ArticleItem {
-    class Adapter(private val isFullScreen: Boolean = false) : RecyclerView.Adapter<ViewHolder>() {
+    class Adapter(
+        private val isFullScreen: Boolean = false,
+        private val isFavoriteScreen: Boolean = false
+    ) : RecyclerView.Adapter<ViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
             ArticleUI(isFullScreen).createView(AnkoContext.create(parent.context, parent)),
-            isFullScreen
+            isFullScreen,
+            isFavoriteScreen
         )
 
-        override fun getItemCount(): Int = ArticleRepository.articles.size
+        override fun getItemCount(): Int = if (isFavoriteScreen) {
+            ArticleRepository.getFavorites().size
+        } else {
+            ArticleRepository.articles.size
+        }
+
         override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(position)
     }
 
-    class ViewHolder(item: View, private val isFullScreen: Boolean) :
+    class ViewHolder(
+        item: View,
+        private val isFullScreen: Boolean,
+        private val isFavoriteScreen: Boolean = false
+    ) :
         RecyclerView.ViewHolder(item) {
 
         private fun getFormattedDate(rawDate: String?): String {
@@ -63,12 +78,19 @@ class ArticleItem {
             }
 
             if (position < ArticleRepository.articles.size) {
-                val article = ArticleRepository.articles[position]
+                val article = if (isFavoriteScreen) {
+                    ArticleRepository.getFavorites()[position]
+                } else {
+                    ArticleRepository.articles[position]
+                }
+
+
                 val imageView = find<ImageView>(ID_IMAGE)
                 if (article.multimedias != null && article.multimedias.isNotEmpty()) {
                     Glide.with(context)
                         .load("https://static01.nyt.com/${article.multimedias.first().url}")
                         .placeholder(R.drawable.ic_under_construction)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(imageView)
                 } else {
                     imageView.image = context.getDrawable(R.drawable.ic_under_construction)
@@ -91,6 +113,12 @@ class ArticleItem {
 
                     onClick {
                         article.isFavorite = !article.isFavorite
+                        ArticleRepository.addRemoveFavorite(
+                            context.getPreference(),
+                            article.isFavorite,
+                            article
+                        )
+
                         if (article.isFavorite) {
                             text = context.getString(R.string.menu_unfavorite)
                             backgroundColor = ContextCompat.getColor(context, R.color.colorAccent)
