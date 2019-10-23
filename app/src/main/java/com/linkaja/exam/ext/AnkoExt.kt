@@ -1,4 +1,4 @@
-package com.linkaja.exam.view.ext
+package com.linkaja.exam.ext
 
 import android.view.ViewManager
 import androidx.cardview.widget.CardView
