@@ -21,6 +21,7 @@ import com.linkaja.exam.model.Article
 import com.linkaja.exam.model.ArticleResponse
 import com.linkaja.exam.model.BaseResult
 import com.linkaja.exam.repository.ArticleRepository
+import com.linkaja.exam.view.EndlessRecyclerViewScrollListener
 import com.linkaja.exam.view.ext.recyclerView
 import com.linkaja.exam.view.item.ArticleItem
 import kotlinx.coroutines.CoroutineScope
@@ -71,8 +72,9 @@ class HomeFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val resultObserver = Observer<BaseResult<ArticleResponse>> { result ->
-            if (result.status == "OK" && result.response?.docs != null) {
+            if (result.response?.docs != null) {
                 ui.addArticles(result.response.docs)
+                if (result.response.docs.isEmpty()) ui.showSnackBar("Data sudah habis")
             } else {
                 ui.showSnackBar("Gagal mengambil data")
             }
@@ -93,14 +95,16 @@ class HomeFragment : Fragment() {
         }
 
         private var isFirstLoad = true
-        private var page: Long = 1
+        private var page: Long = PAGE_START
         private var query: String = DEFAULT_QUERY
 
         fun onCreate() {
-            if (isFirstLoad) getNextArticles()
+            // if (isFirstLoad)
+            getNextArticles()
         }
 
         fun getNextArticles() = launch(Dispatchers.IO) {
+            page += 1
             val articles = ArticleRepository.getArticles(query, page)
             withContext(Dispatchers.Main) {
                 if (articles.response?.docs != null && articles.response.docs.isNotEmpty())
@@ -112,11 +116,15 @@ class HomeFragment : Fragment() {
 
         fun onSearch(newQuery: String) {
             query = if (newQuery.isNotEmpty()) newQuery else DEFAULT_QUERY
-            page = 1
+            page = PAGE_START
+
+            // load data
+            getNextArticles()
         }
 
         companion object {
             const val DEFAULT_QUERY = "indonesia"
+            const val PAGE_START = -1L
         }
     }
 
@@ -131,6 +139,13 @@ class HomeFragment : Fragment() {
         private val mainAdapter: ArticleItem.Adapter by lazy {
             ArticleItem.Adapter()
         }
+
+        private fun getScrollListener(layoutManager: RecyclerView.LayoutManager) =
+            object : EndlessRecyclerViewScrollListener(layoutManager) {
+                override fun onLoadMore(page: Int, totalItemsCount: Int, view: RecyclerView) {
+                    onScroll()
+                }
+            }
 
         override fun createView(ui: AnkoContext<HomeFragment>) = with(ui) {
             frameLayout {
@@ -147,13 +162,15 @@ class HomeFragment : Fragment() {
                     }
                 }.lparams(gravity = Gravity.CENTER)
                 recyclerView = recyclerView {
-                    layoutManager = StaggeredGridLayoutManager(
+                    val mLayoutManager = StaggeredGridLayoutManager(
                         getSpanCount(ctx),
                         StaggeredGridLayoutManager.VERTICAL
                     )
+                    layoutManager = mLayoutManager
                     adapter = mainAdapter
                     visibility = View.GONE
                     horizontalPadding = dip(12)
+                    addOnScrollListener(getScrollListener(mLayoutManager))
                 }
                 floatingActionButton {
                     useCompatPadding = true
