@@ -44,7 +44,8 @@ data class Article(
     @SerializedName("lead_paragraph") val leadParagraph: String? = null,
     @SerializedName("abstract") val abstract: String? = null,
     @SerializedName("section_name") val sectionName: String? = null,
-    @SerializedName("subsection_name") val subSectionName: String? = null
+    @SerializedName("subsection_name") val subSectionName: String? = null,
+    var isFavorite: Boolean = false
 ) {
     companion object {
         val RAW_DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)

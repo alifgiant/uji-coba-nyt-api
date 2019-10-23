@@ -2,13 +2,16 @@ package com.linkaja.exam.view.item
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.IdRes
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.linkaja.exam.R
@@ -18,6 +21,8 @@ import com.linkaja.exam.repository.ArticleRepository
 import com.linkaja.exam.view.activity.NewsActivity
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
+import org.jetbrains.anko.backgroundColor
+import org.jetbrains.anko.button
 import org.jetbrains.anko.configuration
 import org.jetbrains.anko.dip
 import org.jetbrains.anko.find
@@ -27,6 +32,7 @@ import org.jetbrains.anko.padding
 import org.jetbrains.anko.sdk25.coroutines.onClick
 import org.jetbrains.anko.space
 import org.jetbrains.anko.startActivity
+import org.jetbrains.anko.textColor
 import org.jetbrains.anko.textView
 import org.jetbrains.anko.verticalLayout
 import org.jetbrains.anko.windowManager
@@ -72,6 +78,28 @@ class ArticleItem {
                 find<TextView>(ID_BYLINE).text = article.byLine?.original
                 find<TextView>(ID_DATE).text = getFormattedDate(article.pubDate)
                 find<TextView>(ID_SNIPPET).text = article.snippet
+
+                val button = find<Button>(ID_BUTTON)
+                with(button) {
+                    if (article.isFavorite) {
+                        text = context.getString(R.string.menu_unfavorite)
+                        backgroundColor = ContextCompat.getColor(context, R.color.colorAccent)
+                    } else {
+                        text = context.getString(R.string.menu_favorite)
+                        backgroundColor = ContextCompat.getColor(context, R.color.colorPrimary)
+                    }
+
+                    onClick {
+                        article.isFavorite = !article.isFavorite
+                        if (article.isFavorite) {
+                            text = context.getString(R.string.menu_unfavorite)
+                            backgroundColor = ContextCompat.getColor(context, R.color.colorAccent)
+                        } else {
+                            text = context.getString(R.string.menu_favorite)
+                            backgroundColor = ContextCompat.getColor(context, R.color.colorPrimary)
+                        }
+                    }
+                }
             }
         }
     }
@@ -130,6 +158,16 @@ class ArticleItem {
                         id = ID_SNIPPET
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
+                    space {
+                        visibility = if (isFullScreen) View.VISIBLE else View.GONE
+                    }.lparams(height = dip(32))
+                    button {
+                        id = ID_BUTTON
+                        text = ctx.getString(R.string.menu_favorite)
+                        textColor = Color.WHITE
+                        backgroundColor = R.color.colorPrimary
+                        visibility = if (isFullScreen) View.VISIBLE else View.GONE
+                    }
                 }
             }
         }
@@ -146,6 +184,7 @@ class ArticleItem {
         val ID_SNIPPET = View.generateViewId()
         @IdRes
         val ID_IMAGE = View.generateViewId()
+        @IdRes
+        val ID_BUTTON = View.generateViewId()
     }
 }
-
