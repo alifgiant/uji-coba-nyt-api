@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Tes LinkAja</string>
+    <string name="caption_loading">Memuat Berita &#8230;</string>
     <string name="caption_empty">Belum Ada Berita</string>
+    <string name="menu_home">Beranda</string>
+    <string name="menu_favorite">Favorit</string>
 </resources>

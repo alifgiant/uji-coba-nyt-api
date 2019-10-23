@@ -1,4 +1,4 @@
-package com.linkaja.test
+package com.linkaja.exam
 
 import org.junit.Test
 

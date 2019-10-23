@@ -1,4 +1,4 @@
-package com.linkaja.test
+package com.linkaja.exam
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

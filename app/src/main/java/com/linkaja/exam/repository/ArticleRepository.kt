@@ -1,8 +1,8 @@
-package com.linkaja.test.repository
+package com.linkaja.exam.repository
 
-import com.linkaja.test.model.ArticleResponse
-import com.linkaja.test.model.BaseResult
-import com.linkaja.test.service.Api
+import com.linkaja.exam.model.ArticleResponse
+import com.linkaja.exam.model.BaseResult
+import com.linkaja.exam.service.Api
 import retrofit2.http.GET
 import retrofit2.http.Query
 

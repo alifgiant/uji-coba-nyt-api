@@ -1,4 +1,4 @@
-package com.linkaja.test.model
+package com.linkaja.exam.model
 
 import com.google.gson.annotations.SerializedName
 import java.text.SimpleDateFormat

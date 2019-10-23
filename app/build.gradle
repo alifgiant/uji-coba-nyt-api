@@ -16,6 +16,9 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+        }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -61,6 +64,9 @@ dependencies {
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.2.1")
 
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.1.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
     annotationProcessor 'android.arch.persistence.room:compiler:1.1.1'
     testImplementation 'junit:junit:4.12'

@@ -1,4 +1,4 @@
-package com.linkaja.test.service
+package com.linkaja.exam.service
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

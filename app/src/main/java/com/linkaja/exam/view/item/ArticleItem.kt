@@ -1,4 +1,4 @@
-package com.linkaja.test.view.item
+package com.linkaja.exam.view.item
 
 import android.content.Context
 import android.content.res.Configuration
@@ -7,11 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.IdRes
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.linkaja.test.R
-import com.linkaja.test.model.Article
-import com.linkaja.test.view.ext.cardView
+import com.linkaja.exam.R
+import com.linkaja.exam.model.Article
+import com.linkaja.exam.view.ext.cardView
 import org.jetbrains.anko.AnkoComponent
 import org.jetbrains.anko.AnkoContext
 import org.jetbrains.anko.configuration
@@ -93,23 +94,19 @@ class ArticleItem {
                         height = getImageHeight(ctx)
                     )
                     val title = textView {
-                        text = "Title"
                         id = ID_TITLE
                         // textSize = sp(16)
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
                     val byline = textView {
-                        text = "BYLINE"
                         id = ID_BYLINE
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
                     val date = textView {
-                        text = "DATE"
                         id = ID_DATE
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
                     val snippet = textView {
-                        text = "Snippet"
                         id = ID_SNIPPET
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
@@ -119,11 +116,16 @@ class ArticleItem {
     }
 
     companion object {
-        const val ID_TITLE = 1
-        const val ID_BYLINE = 2
-        const val ID_DATE = 3
-        const val ID_SNIPPET = 4
-        const val ID_IMAGE = 5
+        @IdRes
+        val ID_TITLE = View.generateViewId()
+        @IdRes
+        val ID_BYLINE = View.generateViewId()
+        @IdRes
+        val ID_DATE = View.generateViewId()
+        @IdRes
+        val ID_SNIPPET = View.generateViewId()
+        @IdRes
+        val ID_IMAGE = View.generateViewId()
     }
 }
 
