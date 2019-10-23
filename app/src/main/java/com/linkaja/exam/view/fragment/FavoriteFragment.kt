@@ -39,14 +39,22 @@ class FavoriteFragment : Fragment() {
         fun newInstance() = FavoriteFragment()
     }
 
+    val ui: FavoriteUI by lazy {
+        FavoriteUI()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) = FavoriteUI().createView(AnkoContext.Companion.create(ctx, this))
+    ) = ui.createView(AnkoContext.Companion.create(ctx, this))
 
+    override fun onResume() {
+        super.onResume()
+        ui.recyclerView.adapter?.notifyDataSetChanged()
+    }
 
     class FavoriteUI : AnkoComponent<FavoriteFragment> {
-        private lateinit var recyclerView: RecyclerView
+        lateinit var recyclerView: RecyclerView
         private lateinit var emptyView: View
         private lateinit var textView: TextView
 
