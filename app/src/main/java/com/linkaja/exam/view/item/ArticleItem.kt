@@ -33,15 +33,11 @@ import java.util.Date
 
 class ArticleItem {
     class Adapter : RecyclerView.Adapter<ViewHolder>() {
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            return ViewHolder(ArticleUI().createView(AnkoContext.create(parent.context, parent)))
-        }
-
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
+            ArticleUI().createView(AnkoContext.create(parent.context, parent))
+        )
         override fun getItemCount(): Int = ArticleRepository.articles.size
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(ArticleRepository.articles[position])
-        }
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(position)
     }
 
     class ViewHolder(item: View) : RecyclerView.ViewHolder(item) {
@@ -50,7 +46,14 @@ class ArticleItem {
             return Article.SIMPLE_DATE_FORMAT.format(date)
         }
 
-        fun bind(article: Article) {
+        fun bind(position: Int) {
+            itemView.apply {
+                onClick {
+                    context.startActivity<NewsActivity>("position" to position)
+                }
+            }
+
+            val article = ArticleRepository.articles[position]
             val imageView = itemView.find<ImageView>(ID_IMAGE)
             if (article.multimedias != null && article.multimedias.isNotEmpty()) {
                 Glide.with(itemView)
@@ -112,12 +115,6 @@ class ArticleItem {
                         id = ID_SNIPPET
                         textAlignment = TextView.TEXT_ALIGNMENT_TEXT_START
                     }
-                }
-                onClick {
-                    startActivity<NewsActivity>(
-                        "id" to 5,
-                        "city" to "Denpasar"
-                    )
                 }
             }
         }
