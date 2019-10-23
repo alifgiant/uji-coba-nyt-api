@@ -48,8 +48,12 @@ class ArticleItem {
     ) : RecyclerView.Adapter<ViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
             ArticleUI(isFullScreen).createView(AnkoContext.create(parent.context, parent)),
-            isFullScreen,
-            isFavoriteScreen
+            if (isFavoriteScreen) {
+                ArticleRepository.getFavorites()
+            } else {
+                ArticleRepository.articles
+            },
+            isFullScreen
         )
 
         override fun getItemCount(): Int = if (isFavoriteScreen) {
@@ -63,8 +67,8 @@ class ArticleItem {
 
     class ViewHolder(
         item: View,
-        private val isFullScreen: Boolean,
-        private val isFavoriteScreen: Boolean = false
+        private val listArticle: List<Article>,
+        private val isFullScreen: Boolean
     ) :
         RecyclerView.ViewHolder(item) {
 
@@ -74,15 +78,11 @@ class ArticleItem {
         }
 
         fun bind(position: Int) = with(itemView) {
-            if (!isFullScreen) onClick {
-                context.startActivity<NewsActivity>(KEY_POSITION to position)
-            }
-
             if (position < ArticleRepository.articles.size) {
-                val article = if (isFavoriteScreen) {
-                    ArticleRepository.getFavorites()[position]
-                } else {
-                    ArticleRepository.articles[position]
+                val article = listArticle[position]
+
+                if (!isFullScreen) onClick {
+                    context.startActivity<NewsActivity>(KEY_POSITION to article.id)
                 }
 
 

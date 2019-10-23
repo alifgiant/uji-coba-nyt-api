@@ -59,8 +59,10 @@ class NewsActivity : AppCompatActivity() {
             }
         }
         viewModel.resultLD.observe(this, resultObserver)
-
-        ui.recyclerView.scrollToPosition(intent.getIntExtra(KEY_POSITION, 0))
+        intent.getStringExtra(KEY_POSITION)?.let { id ->
+            val index = ArticleRepository.articles.indexOfFirst { it.id == id }
+            if (index > 0) ui.recyclerView.scrollToPosition(index)
+        }
     }
 
     private fun saveData(articlesResult: List<Article>) {
@@ -126,6 +128,6 @@ class NewsActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val KEY_POSITION = "position"
+        const val KEY_POSITION = "article_id"
     }
 }

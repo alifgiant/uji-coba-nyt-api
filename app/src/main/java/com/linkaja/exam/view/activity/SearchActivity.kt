@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.linkaja.exam.R
+import com.linkaja.exam.ext.afterTextChanged
 import com.linkaja.exam.ext.recyclerView
 import com.linkaja.exam.model.Article
 import com.linkaja.exam.repository.ArticleRepository
@@ -104,6 +105,9 @@ class SearchActivity : AppCompatActivity() {
             verticalLayout {
                 editText {
                     hint = "Cari apa?"
+                    afterTextChanged {
+                        onSearch(it)
+                    }
                 }
                 frameLayout {
                     emptyView = verticalLayout {
