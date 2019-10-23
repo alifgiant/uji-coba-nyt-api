@@ -29,50 +29,54 @@ import org.jetbrains.anko.space
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.textView
 import org.jetbrains.anko.verticalLayout
+import org.jetbrains.anko.windowManager
 import java.util.Date
 
 class ArticleItem {
-    class Adapter : RecyclerView.Adapter<ViewHolder>() {
+    class Adapter(private val isFullScreen: Boolean = false) : RecyclerView.Adapter<ViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
-            ArticleUI().createView(AnkoContext.create(parent.context, parent))
+            ArticleUI(isFullScreen).createView(AnkoContext.create(parent.context, parent)),
+            isFullScreen
         )
+
         override fun getItemCount(): Int = ArticleRepository.articles.size
         override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(position)
     }
 
-    class ViewHolder(item: View) : RecyclerView.ViewHolder(item) {
+    class ViewHolder(item: View, private val isFullScreen: Boolean) :
+        RecyclerView.ViewHolder(item) {
+
         private fun getFormattedDate(rawDate: String?): String {
             val date = rawDate?.let { Article.RAW_DATE_FORMAT.parse(it) } ?: Date()
             return Article.SIMPLE_DATE_FORMAT.format(date)
         }
 
-        fun bind(position: Int) {
-            itemView.apply {
-                onClick {
-                    context.startActivity<NewsActivity>("position" to position)
+        fun bind(position: Int) = with(itemView) {
+            if (!isFullScreen) onClick {
+                context.startActivity<NewsActivity>("position" to position)
+            }
+
+            if (position < ArticleRepository.articles.size) {
+                val article = ArticleRepository.articles[position]
+                val imageView = find<ImageView>(ID_IMAGE)
+                if (article.multimedias != null && article.multimedias.isNotEmpty()) {
+                    Glide.with(context)
+                        .load("https://static01.nyt.com/${article.multimedias.first().url}")
+                        .placeholder(R.drawable.ic_under_construction)
+                        .into(imageView)
+                } else {
+                    imageView.image = context.getDrawable(R.drawable.ic_under_construction)
                 }
+                find<TextView>(ID_TITLE).text = article.headline?.printHeadline
+                    ?: article.headline?.main
+                find<TextView>(ID_BYLINE).text = article.byLine?.original
+                find<TextView>(ID_DATE).text = getFormattedDate(article.pubDate)
+                find<TextView>(ID_SNIPPET).text = article.snippet
             }
-
-            val article = ArticleRepository.articles[position]
-            val imageView = itemView.find<ImageView>(ID_IMAGE)
-            if (article.multimedias != null && article.multimedias.isNotEmpty()) {
-                Glide.with(itemView)
-                    .load("https://static01.nyt.com/${article.multimedias.first().url}")
-                    .placeholder(R.drawable.ic_under_construction)
-                    .into(imageView)
-            } else {
-                imageView.image = itemView.context.getDrawable(R.drawable.ic_under_construction)
-            }
-            itemView.find<TextView>(ID_TITLE).text = article.headline?.printHeadline
-                ?: article.headline?.main
-            itemView.find<TextView>(ID_BYLINE).text = article.byLine?.original
-
-            itemView.find<TextView>(ID_DATE).text = getFormattedDate(article.pubDate)
-            itemView.find<TextView>(ID_SNIPPET).text = article.snippet
         }
     }
 
-    class ArticleUI : AnkoComponent<ViewGroup> {
+    class ArticleUI(private val isFullScreen: Boolean) : AnkoComponent<ViewGroup> {
 
         private fun getImageHeight(ctx: Context): Int {
             return when (ctx.configuration.orientation) {
@@ -84,6 +88,17 @@ class ArticleItem {
         override fun createView(ui: AnkoContext<ViewGroup>) = with(ui) {
             cardView {
                 useCompatPadding = true
+                layoutParams = if (isFullScreen) {
+                    ViewGroup.LayoutParams(
+                        ctx.windowManager.defaultDisplay.width - dip(40),
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                } else {
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                }
                 verticalLayout {
                     padding = dip(8)
                     gravity = Gravity.CENTER

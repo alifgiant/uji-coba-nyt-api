@@ -145,7 +145,6 @@ class HomeFragment : Fragment() {
         private lateinit var recyclerView: RecyclerView
         private lateinit var emptyView: View
         private lateinit var textView: TextView
-        private var isFirstLoad: Boolean = true
 
         private val mainAdapter: ArticleItem.Adapter by lazy {
             ArticleItem.Adapter()
