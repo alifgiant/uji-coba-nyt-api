@@ -21,6 +21,7 @@ import com.linkaja.exam.model.Article
 import com.linkaja.exam.repository.ArticleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -39,6 +40,7 @@ import org.jetbrains.anko.imageView
 import org.jetbrains.anko.setContentView
 import org.jetbrains.anko.textColor
 import org.jetbrains.anko.textView
+import org.jetbrains.anko.toast
 import org.jetbrains.anko.verticalLayout
 import org.jetbrains.anko.verticalPadding
 import kotlin.coroutines.CoroutineContext
@@ -48,7 +50,12 @@ class SearchActivity : AppCompatActivity() {
     private val viewModel: SearchViewModel by viewModels()
     private val ui: SearchUI by lazy {
         SearchUI(
-            onSearch = { viewModel.search(it) },
+            onSearch = {
+                // viewModel.search(it)
+                if (it.isNotEmpty()) GlobalScope.launch(Dispatchers.Main) {
+                    this@SearchActivity.toast("Mencari: $it")
+                }
+            },
             onScroll = { viewModel.getNextArticles() }
         )
     }
